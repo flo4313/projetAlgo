@@ -19,14 +19,14 @@ func demande(text:String, valMax:Int)->Int{
 				return ret
 			}
 			if ret == 0 {
-				print("Voulez-vous vraiment quitter? (o/O pour valider)")
+				print("Voulez-vous vraiment annuler? (o/O pour valider)")
 				let val = readLine()
 				if val == "o" || val == "O" {
 					return 0
 				}
 			}
 		}
-		print("Erreur de saisie. Veuillez saisir un nombre correspondant a la reponse de votre choix ou 0 pour quitter\n")
+		print("Erreur de saisie. Veuillez saisir un nombre correspondant a la reponse de votre choix ou 0 pour annuler\n")
 		print(text)
 	}
 	return 0
@@ -186,11 +186,12 @@ func suppCarteCDB(joueur: Joueur)->Carte{
 //ajoute une carte sur le champ de bataille
 func ajoutCarteCDB(joueur: Joueur, cartechoisie: Carte){
 	var i : Int = 0
+	var tabPos : [Position]
 	positions = joueur.getCdB().getPositions()
 	print("Position disponible:")
 	var itPos = joueur.getCdB().makeIterator()
 	while let pos = itPos.next(){
-		if !pos.estCarteAdverse() pos.estPositionVide(){
+		if !pos.estCarteAdverse() && pos.estPositionVide(){
 			tabPos.append(pos)
 			i = i + 1
 			print(i,":",pos.getNomPos())
@@ -199,7 +200,7 @@ func ajoutCarteCDB(joueur: Joueur, cartechoisie: Carte){
 
 	var cartePose : Bool = false
 	while !cartePose{
-		val = demande("Position de deploiement?")
+		val = demande(text:"Position de deploiement?",valMax: i)
 		if val != 0{	
 			joueur.getCdB.ajouterCarte(carte:cartechoisie, position: tabPos[val-1])
 			cartePose = true	
@@ -209,10 +210,28 @@ func ajoutCarteCDB(joueur: Joueur, cartechoisie: Carte){
 
 //-------------------------------------------Partie attaque -------------------------------------------------------------------
 
-func attaquer(joueur: Joueur){
+func attaquer(j1: Joueur, j2: Joueur){
 	var attaque : Bool = true
-	while attaque && joueur.getCdB().getnbCartesPosDef() > 0{
-		
+	j2.getCdB().reinitCartes()
+	var i : Int = 0
+	var tabPos : [Position]
+	var itPos = j1.getCdB().makeIterator()
+	
+	while attaque && j1.getCdB().estPosDef(){
+		positions = j1.getCdB().getPositions()
+		print("Carte qui peuvent attaquer:")
+		while let pos = itPos.next(){
+			if !pos.estCarteAdverse() && pos.estPositionVide() && pos.getCarte().{
+				tabPos.append(pos)
+				i = i + 1
+				print(i,":",pos.getNomPos(), "-->",pos.getCarte().getNomCarte())
+				val = demande(text: "Choix de la carte avec laquelle vous souhaitez attaquer", valMax: i)
+				if val==0 {
+					return
+				}
+				
+			}
+		}	
 	}
 	print("Fin de l'attaque")
 }

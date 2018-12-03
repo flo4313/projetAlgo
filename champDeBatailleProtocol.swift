@@ -45,4 +45,11 @@ protocol ChampDeBatailleProtocol : Sequence{
 
     // Retourne les positions du champ de bataille
     func getPositions()->ChampDeBataille{}
+
+    // Reinitialise tout les degats des cartes
+    func reinitCartes(){}
+
+    //Defini si des cartes sont en position defensives pour pouvoir attaquer
+    func estPosDef()->Bool{}
+
 }
