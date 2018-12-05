@@ -55,17 +55,17 @@ func programmePrincipal(){
 		print("Deploiement obligatoire")
 	}
 
-	var partieFinit : Bool = false
+	var partieF : Bool = false
 	var joueurActuel : Joueur = j1
 	var joueurAdverse Joueur = j2
 	print("Debut de la partie")
 
 	//Debut du tour d'un joueur
-	while !partieFinit{
+	while !partieF{
 		print("\nAu tour de", joueurActuel.getNom())
 
 		//Preparation
-		passerCartesModeDefensive(joueurActuel.getCDBJoueur())
+		passerCartesModeDefensive(joueurActuel.getCdB())
 		print("Cartes en position defensive")
 
 		if !joueurActuel.estPiocheVide(){
@@ -95,7 +95,10 @@ func programmePrincipal(){
 			attaquer(joueurActuel)
 		}
 
+		partieF = partieFinit(j1:joueurActuel, j2:joueurAdverse){
+		}
 	}
+	print("Partie finit")
 }
 
 
@@ -140,7 +143,6 @@ func afficherChampDeBataille(j1: Joueur, j2: Joueur){
 func afficherChampDeBatailleJoueur(joueur:Joueur){
 	var i :Int = 0
 	print("Champ de bataille Joueur",joueur.getNom())
-	positions1 = joueur.getCdB().getPositions()
 	var itPos1 = joueur.getCdB().makeIterator()
 	while let pos = itPos.next(){
 		if !pos.estCarteAdverse()
@@ -159,7 +161,6 @@ func afficherChampDeBatailleJoueur(joueur:Joueur){
 func suppCarteCDB(joueur: Joueur)->Carte{
 	var i :Int = 0
 	var tabPos : [Position]
-	positions = joueur.getCdB().getPositions()
 	var itPos = joueur.getCdB().makeIterator()
 	while let pos = itPos.next(){
 		tabPos.append(pos)
@@ -187,7 +188,6 @@ func suppCarteCDB(joueur: Joueur)->Carte{
 func ajoutCarteCDB(joueur: Joueur, cartechoisie: Carte){
 	var i : Int = 0
 	var tabPos : [Position]
-	positions = joueur.getCdB().getPositions()
 	print("Position disponible:")
 	var itPos = joueur.getCdB().makeIterator()
 	while let pos = itPos.next(){
@@ -212,26 +212,86 @@ func ajoutCarteCDB(joueur: Joueur, cartechoisie: Carte){
 
 func attaquer(j1: Joueur, j2: Joueur){
 	var attaque : Bool = true
-	j2.getCdB().reinitCartes()
-	var i : Int = 0
+	var i : Int 
+	var j : Int 
+
 	var tabPos : [Position]
 	var itPos = j1.getCdB().makeIterator()
+	var itJ2 = j2.getCdB().makeIterator()
+	var tabposAtt = [Position]
 	
+	j2.getCdB().reinitCartes()
+
+	while let pos = itPos.next(){
+		tabPos.append(pos)
+	}
+
+	while let p = itJ2 = itPos.next(){
+		tabposAtt.append(p)
+	}
+
 	while attaque && j1.getCdB().estPosDef(){
-		positions = j1.getCdB().getPositions()
 		print("Carte qui peuvent attaquer:")
-		while let pos = itPos.next(){
-			if !pos.estCarteAdverse() && pos.estPositionVide() && pos.getCarte().{
-				tabPos.append(pos)
-				i = i + 1
-				print(i,":",pos.getNomPos(), "-->",pos.getCarte().getNomCarte())
-				val = demande(text: "Choix de la carte avec laquelle vous souhaitez attaquer", valMax: i)
-				if val==0 {
-					return
-				}
-				
+		i = 0
+		j = 0
+		while i < tabPos.count(){
+			if tabPos[i].estCarteAdverse() && tabPos[i].estPositionVide() && tabPos[i].getCarte().estPosDef{
+				j = j + 1
+				print(j,":",tabPos[i].getNomPos(), "-->",tabPos[i].getCarte().getNomCarte())
 			}
-		}	
+			i = i + 1
+		}
+		val = demande(text: "Choix de la carte avec laquelle vous souhaitez attaquer", valMax: j)
+		if val==0 {
+			v = demande(text:"Voulez-vous interrompre la phase d'action?(0:Non / 1: Oui)",valMax:1)
+			if v == 1 {
+				return
+			}
+		}
+		else{
+			carteattaque = tabPos[val-1]
+			i = 0
+			j = 0
+			while i < tabposAtt[i].count(){
+				if tabposAtt[i].estCible(carte: carteattaque){
+					j = j + 1 
+					print(j,":",tabPos[i].getNomPos(), "-->",tabPos[i].getCarte().getNomCarte())
+				}
+				i = i + 1
+			}
+			if j == 0 {
+				print("Aucune cible disponible")
+			}
+			else{
+				val = demande(text : "Choix de la carte que vous souhaitez attaquer", valMax : j)
+				if val==0 {
+					v = demande(text :"Voulez-vous interrompre la phase d'action?(0:Non / 1: Oui)",valMax:1)
+					if v == 1 {
+						return
+					}
+				}
+				j1.getCdB().mettrePositionOffensive(pos: carteattaque)
+				j2.getCdB().subirAttaque(carteA: carteattaque.getCarte(), posSubit: tabposAtt[val-1])
+
+
+			}
+		}
+		rep = demande(text: "Voulez-vous poursuivre la phase d'attaque? (0: Non / 1: Oui)",valMax : 1)
+		if rep == 0{
+			attaque = false
+		}
+		if partieFinit(j1: j1, j2: j2){
+			return
+		}
+
 	}
 	print("Fin de l'attaque")
+}
+
+//---------------------------------------------Fin de partie -----------------------------------------------------------------------
+
+func partieFinit(j1: Joueur, j2: Joueur)->Bool{
+	if j1.estRoiMort() && j2.estRoiMort(){
+		return true
+	}
 }
