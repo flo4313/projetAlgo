@@ -33,73 +33,6 @@ func demande(text:String, valMax:Int)->Int{
 }
 
 
-//Programme principal qui fait jouer une partie du jouer
-func programmePrincipal(){
-	print("Debut du jeu Art of War.")
-
-	//Création des joueurs
-	var j1 : Joueur 
-	j1 = creerJoueur(1)
-	var j2 : Joueur
-	j2 = creerJoueur(2)
-
-	// Initialise la pioche et la main des joueurs
-	j1.initialisationJoueur()
-	j2.initialisationJoueur()
-
-	// Demande aux joueurs de placer une carte de leur main sur le champ de bataille
-	while !deployer(j1){
-		print("Deploiement obligatoire")
-	}
-	while !deployer(j2){
-		print("Deploiement obligatoire")
-	}
-
-	var partieF : Bool = false
-	var joueurActuel : Joueur = j1
-	var joueurAdverse Joueur = j2
-	print("Debut de la partie")
-
-	//Debut du tour d'un joueur
-	while !partieF{
-		print("\nAu tour de", joueurActuel.getNom())
-
-		//Preparation
-		passerCartesModeDefensive(joueurActuel.getCdB())
-		print("Cartes en position defensive")
-
-		if !joueurActuel.estPiocheVide(){
-			joueurActuel.piocherCarte()
-		}
-
-		// Phase d'action
-		print("Phase d'action")
-		if joueur.getMain().nbCartes() == 6{
-			print("Vous avez trop de cartes en main, il va falloir deployer une carte")
-			rep = 2
-		}
-		else {
-			rep = demande(text:"Que voulez-vous faire? \n1: Ne rien faire \n2: Deployer une carte \n3:Attaquer\n", valMax:3)
-		}
-		if rep == 0 {
-			print("Le joueur a décidé de quitter la partie")
-			return
-		}
-		if rep == 2{
-			if !deployer(joueurActuel){
-				print("Deploiement impossible vous allez pouvoir attaquer")
-				rep = 3
-			}
-		}
-		if rep == 3{
-			attaquer(joueurActuel)
-		}
-
-		partieF = partieFinit(j1:joueurActuel, j2:joueurAdverse){
-		}
-	}
-	print("Partie finit")
-}
 
 
 //----------------------------------------Partie deploiement-----------------------------------------------------------
@@ -126,10 +59,10 @@ func deployer(joueur: Joueur) -> Bool {
 
 	while joueur.getCdB().estPlein(){
 		suppCarteCDB(joueur: joueur)
-		joueur.getRoyaume().ajouterCarte(carteMV)
+		joueur.getRoyaume().(carteMV)
 	}
 
-	ajouterCarte(joueur: joueur, cartechoisie: Carte)
+	ajoutCarteCDB(joueur: joueur, cartechoisie: Carte)
 	return true
 }
 
@@ -157,56 +90,6 @@ func afficherChampDeBatailleJoueur(joueur:Joueur){
 	print(tabPos[NomPosition.A1],"	",tabPos[NomPosition.A2],"	",tabPos[NomPosition.A3])
 }
 
-//Supprime un carte du champ de bataille du joueur
-func suppCarteCDB(joueur: Joueur)->Carte{
-	var i :Int = 0
-	var tabPos : [Position]
-	var itPos = joueur.getCdB().makeIterator()
-	while let pos = itPos.next(){
-		tabPos.append(pos)
-	}
-
-	print("Champ de bataille du Joueur", joueur.getNom())
-	for position in tabPos{
-		if !position.estCarteAdverse(){
-			i = i + 1
-			print(i,": Carte",position.getCarte().getNomCarte(),"en",position.getNomPos())
-		}
-			
-	}
-	val = demande(text:"Quel carte voulez-vous mettre au Royaume?",valMax:joueur.getCdB().getnbCartes())
-	while val == 0 {
-		print("Vous devez obligatoirement choisir une carte")
-		val = demande(text:"Quel carte voulez-vous mettre au Royaume?",valMax:joueur.getCdB().getnbCartes())
-	}
-	carteMV =  joueur.getCdB().enleverCarte(position:tabPos[val-1])
-	return carteMV
-}
-
-
-//ajoute une carte sur le champ de bataille
-func ajoutCarteCDB(joueur: Joueur, cartechoisie: Carte){
-	var i : Int = 0
-	var tabPos : [Position]
-	print("Position disponible:")
-	var itPos = joueur.getCdB().makeIterator()
-	while let pos = itPos.next(){
-		if !pos.estCarteAdverse() && pos.estPositionVide(){
-			tabPos.append(pos)
-			i = i + 1
-			print(i,":",pos.getNomPos())
-		}
-	}
-
-	var cartePose : Bool = false
-	while !cartePose{
-		val = demande(text:"Position de deploiement?",valMax: i)
-		if val != 0{	
-			joueur.getCdB.ajouterCarte(carte:cartechoisie, position: tabPos[val-1])
-			cartePose = true	
-		}
-	}
-}
 
 //-------------------------------------------Partie attaque -------------------------------------------------------------------
 
@@ -288,10 +171,194 @@ func attaquer(j1: Joueur, j2: Joueur){
 	print("Fin de l'attaque")
 }
 
+
+//--------------------------------------------------------------------Mouvement --------------------------------------------------------------
+
+//Le joueur replace une carte de son Royaume sur le champ de bataille
+func replacer(joueur: Joueur) -> Bool {
+	if joueur.estRoyaumeVide(){
+		return false
+	}
+	cartemv = joueur.getRoyaume().getFirst()
+	joueur.getRoyaume().supprimerCarteCollection(carte:cartemv )
+	ajoutCarteCDB(joueur: joueur, carte: cartemv)
+	return true
+}
+
+
+//Supprime un carte du champ de bataille du joueur
+func suppCarteCDB(joueur: Joueur)->Carte{
+	var i :Int = 0
+	var tabPos : [Position]
+	var cdbJ = ChampDeBataille
+	cdbJ = joueur.getCdB()
+	var itPos = cdbJ.makeIterator()
+	while let pos = itPos.next(){
+		tabPos.append(pos)
+	}
+	var carteJ : Carte
+	print("Champ de bataille du Joueur", joueur.getNom())
+	for position in tabPos{
+		if !position.estCarteAdverse(){
+			i = i + 1
+			carteJ = position.getCarte()
+			print(i,": Carte",carteJ.getNomCarte(),"en",position.getNomPos())
+		}
+			
+	}
+	val = demande(text:"Quel carte voulez-vous mettre au Royaume?",valMax:i)
+	while val == 0 {
+		print("Vous devez obligatoirement choisir une carte")
+		val = demande(text:"Quel carte voulez-vous mettre au Royaume?",valMax:i )
+	}
+	carteMV =  cdbJ.enleverCarte(position:tabPos[val-1])
+	return carteMV
+}
+
+
+//ajoute une carte sur le champ de bataille
+func ajoutCarteCDB(joueur: Joueur, cartechoisie: Carte){
+	var i : Int = 0
+	var tabPos : [Position]
+	print("Position disponible:")
+	var cdbJ : ChampDeBataille
+	cdbJ = joueur.getCdB()
+	var itPos = cdbJ.makeIterator()
+
+	while let pos = itPos.next(){
+		if !pos.estCarteAdverse() && pos.estPositionVide(){
+			tabPos.append(pos)
+			i = i + 1
+			print(i,":",pos.getNomPos())
+		}
+	}
+
+	var cartePose : Bool = false
+	while !cartePose{
+		val = demande(text:"Position de deploiement?",valMax: i)
+		if val != 0{	
+			cdbJ.ajoutCarteCDB(carte:cartechoisie, position: tabPos[val-1])
+			cartePose = true	
+		}
+	}
+}
+
+
 //---------------------------------------------Fin de partie -----------------------------------------------------------------------
 
+
 func partieFinit(j1: Joueur, j2: Joueur)->Bool{
-	if j1.estRoiMort() && j2.estRoiMort(){
+	if j2.estRoiMort(){
+		print("Le joueur", j2.getNom(), "a perdu")
 		return true
 	}
+	if nombreCarteCDB(j2.getCdB()) == 0{
+		if !remplacer(joueur: j2) {
+			if !deployer(joueur:j2) {
+				print("Le joueur", j2.getNom(), "a perdu")
+    			return true
+    		}
+    	}
+    }
+	var piocheJ1 : CollectionCarte
+	piocheJ1 = j1.getPioche()
+	var piocheJ2 : CollectionCarte 
+	piocheJ2 = j2.getPioche()
+	var royaumeJ1 : CollectionCarte 
+	royaumeJ1 = j1.getRoyaume()
+	var royaumeJ2 : CollectionCarte 
+	royaumeJ2 = j2.getRoyaume()
+
+    if piocheJ1.estvideCollection() || piocheJ2.estvideCollection(){
+    	if royaumeJ1.nombreCarteCollection() == royaumeJ2.getRoyaume().nombreCarteCollection(){
+    		print("Egalité entre les deux joueurs")
+    		return true
+    	}
+    	else if royaumeJ1.nombreCarteCollection() < royaumeJ2.nombreCarteCollection(){
+    		print("Le joueur", j2.getNom(), "a gagné")
+    		return true
+    	}
+    	else {
+    		print("Le joueur", j1.getNom(), "a gagné")
+    		return true
+    	}
+    }
+    return false
+}
+
+
+//-----------------------------------------------------------Programme Principal------------------------------------------------------------------
+
+//Programme principal qui fait jouer une partie du jouer
+func programmePrincipal(){
+	print("Debut du jeu Art of War.")
+
+	//Création des joueurs
+	var j1 : Joueur 
+	j1 = creerJoueur("1")
+	var j2 : Joueur
+	j2 = creerJoueur("2")
+
+	// Initialise la pioche et la main des joueurs
+	j1.initialisationJoueur()
+	j2.initialisationJoueur()
+
+	// Demande aux joueurs de placer une carte de leur main sur le champ de bataille
+	while !deployer(j1){
+		print("Deploiement obligatoire")
+	}
+	while !deployer(j2){
+		print("Deploiement obligatoire")
+	}
+
+	var partieF : Bool = false
+	var joueurActuel : Joueur
+	joueurActuel = j1
+	var joueurAdverse Joueur
+	joueurAdverse = j2
+	print("Debut de la partie")
+	var main : CollectionCarte
+	var tmp : Joueur
+	//Debut du tour d'un joueur
+	while !partieF{
+		print("\nAu tour de", joueurActuel.getNom())
+
+		//Preparation
+		passerCartesModeDefensive(joueurActuel.getCdB())
+		print("Cartes en position defensive")
+
+		joueurActuel.piocherCarte()
+
+		// Phase d'action
+		print("Phase d'action")
+		main = joueurActuel.getMain()
+
+		if main.nbCartes() == 6{
+			print("Vous avez trop de cartes en main, il va falloir deployer une carte")
+			rep = 2
+		}
+		else {
+			rep = demande(text:"Que voulez-vous faire? \n1: Ne rien faire \n2: Deployer une carte \n3:Attaquer\n", valMax:3)
+		}
+		if rep == 0 {
+			print("Le joueur a décidé de quitter la partie")
+			return
+		}
+		if rep == 2{
+			if !deployer(joueurActuel){
+				print("Deploiement impossible vous allez pouvoir attaquer")
+				rep = 3
+			}
+		}
+		if rep == 3{
+			attaquer(j1 :joueurActuel, j2: joueurAdverse)
+		}
+		if partieFinit(j1:joueurActuel, j2:joueurAdverse){
+			partieF = true
+		}
+		tmp = joueurActuel
+		joueurActuel = joueurAdverse
+		joueurAdverse = tmp
+	}
+	print("Partie finit")
 }
