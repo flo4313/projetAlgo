@@ -42,7 +42,9 @@ func deployer(joueur: Joueur) -> Bool {
 	if joueur.estMainVide(){
 		return false
 	}
-	cartes = joueur.getMain().getCartes() // retourne un tableau de cartes
+	var main : CollectionCarte
+	main = joueur.getMain()
+	cartes = main.getCartes()
 	var i : Int = 0
 	for carte in cartes{
 		i = i + 1
@@ -55,11 +57,14 @@ func deployer(joueur: Joueur) -> Bool {
 	if val == 0 {
 		return false
 	}
-	cartechoisie = joueur.getMain().retirerCarte(cartes[val-1])
-
-	while joueur.getCdB().estPlein(){
+	cartechoisie = main.retirerCarte(cartes[val-1])
+	var cdbJ : ChampDeBataille
+	cdbJ = joueur.getCdB() 
+	var royaumeJ : CollectionCarte
+	royaumeJ = joueur.getRoyaume() 
+	while cdbJ.estPlein(){
 		suppCarteCDB(joueur: joueur)
-		joueur.getRoyaume().(carteMV)
+		getRoyaume(carteMV)
 	}
 
 	ajoutCarteCDB(joueur: joueur, cartechoisie: Carte)
@@ -76,10 +81,16 @@ func afficherChampDeBataille(j1: Joueur, j2: Joueur){
 func afficherChampDeBatailleJoueur(joueur:Joueur){
 	var i :Int = 0
 	print("Champ de bataille Joueur",joueur.getNom())
-	var itPos1 = joueur.getCdB().makeIterator()
+	var cdbJ : ChampDeBataille
+	cdbJ = joueur.getCdB()
+	var itPos1 = cdbJ.makeIterator()
+	var carte : Carte
+
 	while let pos = itPos.next(){
-		if !pos.estCarteAdverse()
-		tabPos[pos.getNomPos()] = pos.getCarte().getNomCarte()
+		if !pos.estCarteAdverse(){
+			carte = pos.getCarte()
+			tabPos[pos.getNomPos()] = carte.getNomCarte()
+		}
 	}
 	print("Joueur",joueur.getNom())
 	print("\nFront")
@@ -99,11 +110,15 @@ func attaquer(j1: Joueur, j2: Joueur){
 	var j : Int 
 
 	var tabPos : [Position]
-	var itPos = j1.getCdB().makeIterator()
-	var itJ2 = j2.getCdB().makeIterator()
+	var cdbJ1 : ChampDeBataille
+	cdbJ1 = j1.getCdB()
+	var itPos = cdbJ1.makeIterator()
+	var cdbJ2 : ChampDeBataille
+	cdbJ2 = j2.getCdB()
+	var itJ2 = cdbJ2.makeIterator()
 	var tabposAtt = [Position]
 	
-	j2.getCdB().reinitCartes()
+	cdbJ2.reinitCartes()
 
 	while let pos = itPos.next(){
 		tabPos.append(pos)
@@ -112,13 +127,14 @@ func attaquer(j1: Joueur, j2: Joueur){
 	while let p = itJ2 = itPos.next(){
 		tabposAtt.append(p)
 	}
-
+	var carteA : Carte
 	while attaque && j1.getCdB().estPosDef(){
 		print("Carte qui peuvent attaquer:")
 		i = 0
 		j = 0
 		while i < tabPos.count(){
-			if tabPos[i].estCarteAdverse() && tabPos[i].estPositionVide() && tabPos[i].getCarte().estPosDef{
+			carteA = tabPos[i].getCarte()
+			if tabPos[i].estCarteAdverse() && tabPos[i].estPositionVide() && carteA.estPosDef(){
 				j = j + 1
 				print(j,":",tabPos[i].getNomPos(), "-->",tabPos[i].getCarte().getNomCarte())
 			}
@@ -132,13 +148,15 @@ func attaquer(j1: Joueur, j2: Joueur){
 			}
 		}
 		else{
+			var carteattaque : Carte
 			carteattaque = tabPos[val-1]
 			i = 0
 			j = 0
 			while i < tabposAtt[i].count(){
 				if tabposAtt[i].estCible(carte: carteattaque){
 					j = j + 1 
-					print(j,":",tabPos[i].getNomPos(), "-->",tabPos[i].getCarte().getNomCarte())
+					carteA = tabPos[i]
+					print(j,":",tabPos[i].getNomPos(), "-->",carteA.getNomCarte())
 				}
 				i = i + 1
 			}
@@ -153,8 +171,8 @@ func attaquer(j1: Joueur, j2: Joueur){
 						return
 					}
 				}
-				j1.getCdB().mettrePositionOffensive(pos: carteattaque)
-				j2.getCdB().subirAttaque(carteA: carteattaque.getCarte(), posSubit: tabposAtt[val-1])
+				cdbJ1.mettrePositionOffensive(pos: carteattaque)
+				cdbJ2.subirAttaque(carteA: carteattaque.getCarte(), posSubit: tabposAtt[val-1])
 
 
 			}
@@ -176,11 +194,15 @@ func attaquer(j1: Joueur, j2: Joueur){
 
 //Le joueur replace une carte de son Royaume sur le champ de bataille
 func replacer(joueur: Joueur) -> Bool {
-	if joueur.estRoyaumeVide(){
+	var royaumeJ : CollectionCarte
+	var cartemv : Carte
+	royaumeJ = joueur.getRoyaume()
+	if royaumeJ.estvideCollection(){
 		return false
 	}
-	cartemv = joueur.getRoyaume().getFirst()
-	joueur.getRoyaume().supprimerCarteCollection(carte:cartemv )
+
+	cartemv = royaumeJ.getFirst()
+	royaumeJ.supprimerCarteCollection(carte:cartemv)
 	ajoutCarteCDB(joueur: joueur, carte: cartemv)
 	return true
 }
@@ -361,4 +383,9 @@ func programmePrincipal(){
 		joueurAdverse = tmp
 	}
 	print("Partie finit")
+}
+
+
+func main(){
+	programmePrincipal()
 }
